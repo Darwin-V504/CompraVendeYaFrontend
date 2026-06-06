@@ -1,0 +1,43 @@
+export const lightColors = {
+  
+  background: "#FAF9F7",           
+  backgroundAlt: "#F4F1EA",      
+  card: "#FFFFFF",                 
+  text: "#2C2420",                 
+  textSecondary: "#6B5E55",        
+  textLight: "#9C9088",            
+  primary: "#8B6946",              
+  primarySoft: "#C4B5A0",          
+  accent: "#A07A4A",               
+  border: "#E5DFD7",               
+  success: "#6B8F6B",              
+  warning: "#D4A373",              
+  error: "#C96A4B",                
+  white: "#FFFFFF",
+  black: "#1C1815",              
+  gray: "#8B7E72",                 
+  lightGray: "#E8E2D9",           
+  shadow: "rgba(28, 24, 21, 0.08)",
+};
+
+export const darkColors = {
+ 
+  background: "#1A1715",           
+  backgroundAlt: "#24201D",        
+  card: "#2A2623",               
+  text: "#EBE5DE",                 
+  textSecondary: "#B5A898",        
+  textLight: "#7A6E63",            
+  primary: "#B8956E",              
+  primarySoft: "#5C5046",         
+  accent: "#C9A87C",               
+  border: "#3D3732",               
+  success: "#7BA67B",              
+  warning: "#C58C52",              
+  error: "#D47B5A",                
+  white: "#F5F2EE",
+  black: "#0D0B0A",
+  gray: "#8E7F72",
+  lightGray: "#3A3530",
+  shadow: "rgba(0, 0, 0, 0.2)",
+};
