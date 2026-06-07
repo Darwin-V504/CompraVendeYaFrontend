@@ -39,20 +39,29 @@ export default function RegisterScreen({ navigation }: any) {
         setLoading(true);
         
         try {
+            const nameParts = fullName.trim().split(' ');
+            const nombre = nameParts[0] || '';
+            const apellido = nameParts.slice(1).join(' ') || '';
+
+            console.log('Registrando con:', { email, nombre, apellido, phone });
+
             const success = await signUp(email, password, {
+                nombre: nombre,
+                apellido: apellido,
                 full_name: fullName,
                 phone: phone,
+                telefono: phone,
             });
             
             if (success) {
+                console.log('Registro exitoso');
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'MainTabs' }],
                 });
-            } else {
-                Alert.alert("Error", "No se pudo registrar");
             }
         } catch (error: any) {
+            console.error('Error registro:', error);
             Alert.alert("Error", error.message || "Error inesperado");
         } finally {
             setLoading(false);

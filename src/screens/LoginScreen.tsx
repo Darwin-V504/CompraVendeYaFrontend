@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from "react-native";
 import { useState } from "react";
-import {useAuth} from "../contexts/AuthContexts";
+import { useAuth } from "../contexts/AuthContexts";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getThemeColors } from "../infoutils/theme";
@@ -23,12 +23,16 @@ export default function LoginScreen({ navigation }: any) {
             return;
         }
 
+        console.log('Intentando login con:', { email });
+
         setLoading(true);
         const success = await login(email, password);
         setLoading(false);
         
-        if (!success) {
-            // Error ya manejado por el contexto
+        if (success) {
+            console.log('Login exitoso');
+        } else {
+            console.log('Login falló');
         }
     };
 

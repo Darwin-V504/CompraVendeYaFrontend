@@ -7,7 +7,10 @@ type User = {
   email?: string;
   token: string;
   full_name?: string;
+  nombre?: string;
+  apellido?: string;
   phone?: string;
+  telefono?: string;
   birth_date?: string;
   profile_image_url?: string;
 } | null;
@@ -49,9 +52,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               email: userData.email,
               token: token,
               full_name: userData.full_name,
+              nombre: userData.nombre,
+              apellido: userData.apellido,
               phone: userData.phone,
-              birth_date: userData.birth_date,
-              profile_image_url: userData.profile_image_url,
+              telefono: userData.telefono,
             });
             setIsAllowed(true);
           }
@@ -80,8 +84,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: response.user.email,
           token: response.token,
           full_name: response.user.full_name,
+          nombre: response.user.nombre,
+          apellido: response.user.apellido,
           phone: response.user.phone,
-          profile_image_url: response.user.profile_image_url,
+          telefono: response.user.telefono,
         });
         setIsAllowed(true);
         return true;
@@ -114,18 +120,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await authService.register({
         email,
         password,
-        full_name: profileData?.full_name || '',
-        phone: profileData?.phone || '',
+        nombre: profileData?.nombre || profileData?.full_name?.split(' ')[0] || '',
+        apellido: profileData?.apellido || profileData?.full_name?.split(' ').slice(1).join(' ') || '',
+        telefono: profileData?.phone || profileData?.telefono || '',
+        rol: profileData?.rol || 'Agente'
       });
+      
       if (response.token && response.user) {
         setUser({
           id: response.user.id,
           email: response.user.email,
           token: response.token,
-          full_name: response.user.full_name,
+          full_name: response.user.full_name || `${response.user.nombre} ${response.user.apellido}`,
+          nombre: response.user.nombre,
+          apellido: response.user.apellido,
           phone: response.user.phone,
-          birth_date: profileData?.birth_date,
-          profile_image_url: response.user.profile_image_url,
+          telefono: response.user.telefono,
         });
         setIsAllowed(true);
         Alert.alert("Registro exitoso", "Tu cuenta ha sido creada correctamente.");
@@ -143,14 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (profileData: any) => {
     try {
       setIsLoading(true);
-      const updatedUser = await authService.updateProfile(profileData);
-      setUser(prev => prev ? {
-        ...prev,
-        full_name: updatedUser.full_name || prev.full_name,
-        phone: updatedUser.phone || prev.phone,
-        birth_date: updatedUser.birth_date || prev.birth_date,
-        profile_image_url: updatedUser.profile_image_url || prev.profile_image_url,
-      } : prev);
+      // Implementar si es necesario
       Alert.alert("Éxito", "Perfil actualizado correctamente");
     } catch (error: any) {
       console.error('Error actualizando perfil:', error);

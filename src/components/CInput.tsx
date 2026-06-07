@@ -1,8 +1,8 @@
 import { KeyboardTypeOptions, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { useTheme } from "../contexts/ThemeContext";
 import { getThemeColors } from "../infoutils/theme";
+import { useTheme } from "../contexts/ThemeContext";
 
 type Props = {
     required?: boolean | string;

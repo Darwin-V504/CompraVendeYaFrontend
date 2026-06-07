@@ -3,7 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../infoutils/theme';
 import { useAuth } from '../contexts/AuthContexts';
 import TabsNavigator from './TabsNavigator';
-
+import SearchMercadoLibreScreen from '../screens/SearchMercadoLibreScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/Register';
 import PropertyDetailScreen from '../screens/PropertyDetailScreen';
@@ -15,6 +15,7 @@ export type RootStackParamList = {
     MainTabs: undefined;
     PropertyDetail: { propertyId: string };
     Search: undefined;
+    SearchML: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,6 +57,11 @@ export default function StackNavigator() {
                         name="MainTabs"
                         component={TabsNavigator}
                         options={{ headerShown: false }}
+                    />
+                    <Stack.Screen 
+                      name="SearchML" 
+                      component={SearchMercadoLibreScreen} 
+                     options={{ title: 'Buscar en Mercado Libre' }}
                     />
                     <Stack.Screen
                         name="PropertyDetail"
