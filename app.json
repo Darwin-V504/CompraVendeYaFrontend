@@ -1,7 +1,12 @@
 {
   "expo": {
+<<<<<<< HEAD
     "name": "CompraVendeYa",
     "slug": "CompraVendeYa",
+=======
+    "name": "BienesRaicesApp",
+    "slug": "BienesRaicesApp",
+>>>>>>> 049e814f77b0e44aa1426e82cd31620acde862c4
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,9 +30,13 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+<<<<<<< HEAD
     },
     "plugins": [
       "@react-native-community/datetimepicker"
     ]
+=======
+    }
+>>>>>>> 049e814f77b0e44aa1426e82cd31620acde862c4
   }
 }
