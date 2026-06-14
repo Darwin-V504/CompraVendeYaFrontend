@@ -11,7 +11,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 
 export type TabsParamList = {
     Home: undefined;
-    Properties: undefined;
+    CreateProperties: undefined;
     Favorites: undefined;
     Profile: undefined;
 }
@@ -57,16 +57,7 @@ export default function TabsNavigator() {
                     ),
                 }}
             />
-            <Tab.Screen
-                name="Properties"
-                component={PropertiesScreen}
-                options={{
-                    title: 'Propiedades',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="business-outline" size={size} color={color} />
-                    ),
-                }}
-            />
+            
             <Tab.Screen
                 name="Favorites"
                 component={FavoritesScreen}

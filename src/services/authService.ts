@@ -1,13 +1,18 @@
+// services/authService.ts
 import * as SecureStore from 'expo-secure-store';
+
+// Para Android Emulator
+const API_BASE_URL = 'http://10.0.2.2:5000/api';
 
 export interface User {
   id: string;
   email: string;
   full_name?: string;
+  nombre?: string;
+  apellido?: string;
   phone?: string;
-  birth_date?: string;
-  profile_image_url?: string;
-  role?: string;
+  telefono?: string;
+  rol?: string;
 }
 
 export interface LoginCredentials {
@@ -18,8 +23,10 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  full_name: string;
-  phone?: string;
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+  rol?: string;
 }
 
 export interface AuthResponse {
@@ -28,78 +35,135 @@ export interface AuthResponse {
 }
 
 class AuthService {
-  
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      
+      
+      const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          Email: credentials.email,
+          Password: credentials.password
+        }),
+      });
+      
+      const data = await response.json();
     
-    if (!credentials.email || !credentials.password) {
-      throw new Error('Email y contraseña son requeridos');
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al iniciar sesión');
+      }
+      
+      if (!data.token) {
+        throw new Error('No se recibió token del servidor');
+      }
+      
+      //  Guardar token REAL 
+      await SecureStore.setItemAsync('auth_token', data.token);
+      await SecureStore.setItemAsync('user_data', JSON.stringify({
+        id: data.user.idUsuario.toString(),
+        email: data.user.email,
+        nombre: data.user.nombre,
+        apellido: data.user.apellido,
+        full_name: `${data.user.nombre} ${data.user.apellido}`,
+        rol: data.user.rol,
+        telefono: data.user.telefono
+      }));
+      
+      
+      
+      return {
+        token: data.token,
+        user: {
+          id: data.user.idUsuario.toString(),
+          email: data.user.email,
+          nombre: data.user.nombre,
+          apellido: data.user.apellido,
+          full_name: `${data.user.nombre} ${data.user.apellido}`,
+          rol: data.user.rol,
+          phone: data.user.telefono
+        }
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    
-    if (credentials.password.length < 6) {
-      throw new Error('La contraseña debe tener al menos 6 caracteres');
-    }
-    
-    const mockUser: User = {
-      id: 'mock_' + Date.now(),
-      email: credentials.email,
-      full_name: credentials.email.split('@')[0],
-      phone: '5512345678',
-    };
-    
-    const mockToken = 'mock_token_' + Date.now();
-    
-    await SecureStore.setItemAsync('auth_token', mockToken);
-    await SecureStore.setItemAsync('user_data', JSON.stringify(mockUser));
-    
-    return {
-      token: mockToken,
-      user: mockUser,
-    };
   }
 
   async register(userData: RegisterData): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
     
-    if (!userData.email || !userData.password || !userData.full_name) {
-      throw new Error('Todos los campos son requeridos');
+      
+      const response = await fetch(`${API_BASE_URL}/Auth/register`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          Nombre: userData.nombre,
+          Apellido: userData.apellido,
+          Email: userData.email,
+          Password: userData.password,
+          Telefono: userData.telefono || '',
+          Rol: userData.rol || 'Agente'
+        }),
+      });
+      
+      const data = await response.json();
+      
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al registrar');
+      }
+      
+      if (!data.token) {
+        throw new Error('No se recibió token del servidor');
+      }
+      
+      await SecureStore.setItemAsync('auth_token', data.token);
+      await SecureStore.setItemAsync('user_data', JSON.stringify({
+        id: data.user.idUsuario.toString(),
+        email: data.user.email,
+        nombre: data.user.nombre,
+        apellido: data.user.apellido,
+        full_name: `${data.user.nombre} ${data.user.apellido}`,
+        rol: data.user.rol,
+        telefono: data.user.telefono
+      }));
+      
+      return {
+        token: data.token,
+        user: {
+          id: data.user.idUsuario.toString(),
+          email: data.user.email,
+          nombre: data.user.nombre,
+          apellido: data.user.apellido,
+          full_name: `${data.user.nombre} ${data.user.apellido}`,
+          rol: data.user.rol,
+          phone: data.user.telefono
+        }
+      };
+    } catch (error) {
+      console.error(' Register error:', error);
+      throw error;
     }
-    
-    if (userData.password.length < 6) {
-      throw new Error('La contraseña debe tener al menos 6 caracteres');
-    }
-    
-    const mockUser: User = {
-      id: 'mock_' + Date.now(),
-      email: userData.email,
-      full_name: userData.full_name,
-      phone: userData.phone || '',
-    };
-    
-    const mockToken = 'mock_token_' + Date.now();
-    
-    await SecureStore.setItemAsync('auth_token', mockToken);
-    await SecureStore.setItemAsync('user_data', JSON.stringify(mockUser));
-    
-    return {
-      token: mockToken,
-      user: mockUser,
-    };
   }
 
   async logout(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
     await SecureStore.deleteItemAsync('auth_token');
     await SecureStore.deleteItemAsync('user_data');
+    console.log(' Sesión cerrada');
   }
 
   async getCurrentUser(): Promise<User | null> {
     try {
       const userData = await SecureStore.getItemAsync('user_data');
-      if (userData) {
-        return JSON.parse(userData);
-      }
-      return null;
+      return userData ? JSON.parse(userData) : null;
     } catch (error) {
       return null;
     }
@@ -110,31 +174,8 @@ class AuthService {
     return token !== null;
   }
 
-  async updateProfile(profileData: Partial<User>): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const currentUser = await this.getCurrentUser();
-    const updatedUser = { ...currentUser, ...profileData } as User;
-    
-    await SecureStore.setItemAsync('user_data', JSON.stringify(updatedUser));
-    
-    return updatedUser;
-  }
-
-  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (newPassword.length < 6) {
-      throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
-    }
-  }
-
   async getToken(): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync('auth_token');
-    } catch (error) {
-      return null;
-    }
+    return await SecureStore.getItemAsync('auth_token');
   }
 }
 

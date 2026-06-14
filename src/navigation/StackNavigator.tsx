@@ -3,7 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../infoutils/theme';
 import { useAuth } from '../contexts/AuthContexts';
 import TabsNavigator from './TabsNavigator';
-
+import CreatePropertyScreen from '../screens/CreatePropertyScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/Register';
 import PropertyDetailScreen from '../screens/PropertyDetailScreen';
@@ -15,6 +15,7 @@ export type RootStackParamList = {
     MainTabs: undefined;
     PropertyDetail: { propertyId: string };
     Search: undefined;
+    CreateProperty: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -66,6 +67,11 @@ export default function StackNavigator() {
                         name="Search"
                         component={SearchScreen}
                         options={{ title: 'Buscar Propiedades' }}
+                    />
+                    <Stack.Screen
+                        name="CreateProperty"
+                        component={CreatePropertyScreen}
+                        options={{ title: 'Publicar Propiedad' }}
                     />
                 </>
             )}
