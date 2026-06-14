@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import { createContext, useState, useContext, useEffect } from 'react';
-import authService, { User as AuthUser } from '../services/authService';
+import authService from '../services/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type User = {
   id: string;
@@ -8,8 +9,6 @@ type User = {
   token: string;
   full_name?: string;
   phone?: string;
-  birth_date?: string;
-  profile_image_url?: string;
 } | null;
 
 type AuthContextType = {
@@ -32,35 +31,37 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>(null);
-  const [isAllowed, setIsAllowed] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Restaurar sesión al iniciar
   useEffect(() => {
     const restoreSession = async () => {
       setIsLoading(true);
       try {
-        const isValid = await authService.isAuthenticated();
-        if (isValid) {
-          const userData = await authService.getCurrentUser();
-          const token = await authService.getToken();
-          if (userData && token) {
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              token: token,
-              full_name: userData.full_name,
-              phone: userData.phone,
-              birth_date: userData.birth_date,
-              profile_image_url: userData.profile_image_url,
-            });
-            setIsAllowed(true);
-          }
+        const token = await AsyncStorage.getItem('auth_token');
+        const userData = await AsyncStorage.getItem('user_data');
+        
+       
+        
+        if (token && userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser({
+            id: parsedUser.id,
+            email: parsedUser.email,
+            token: token,
+            full_name: parsedUser.full_name,
+            phone: parsedUser.telefono,
+          });
+          setIsAllowed(true);
+          
         } else {
+        
           setUser(null);
           setIsAllowed(false);
         }
       } catch (error) {
-        console.error('Error restaurando sesión:', error);
+       
         setUser(null);
         setIsAllowed(false);
       } finally {
@@ -73,36 +74,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      
+      
       const response = await authService.login({ email, password });
-      if (response.token && response.user) {
-        setUser({
-          id: response.user.id,
-          email: response.user.email,
-          token: response.token,
-          full_name: response.user.full_name,
-          phone: response.user.phone,
-          profile_image_url: response.user.profile_image_url,
-        });
-        setIsAllowed(true);
-        return true;
-      }
-      return false;
+      
+      
+      // Guardar en AsyncStorage también para consistencia
+      await AsyncStorage.setItem('auth_token', response.token);
+      await AsyncStorage.setItem('user_data', JSON.stringify({
+        id: response.user.id,
+        email: response.user.email,
+        full_name: response.user.full_name,
+        telefono: response.user.phone,
+      }));
+      
+      setUser({
+        id: response.user.id,
+        email: response.user.email,
+        token: response.token,
+        full_name: response.user.full_name,
+        phone: response.user.phone,
+      });
+      setIsAllowed(true);
+      
+    
+      return true;
     } catch (error: any) {
-      Alert.alert("Error al iniciar sesión", error.message);
+      
+      Alert.alert("Error", error.message || "Error al iniciar sesión");
       return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      setIsLoading(true);
-      await authService.logout();
-      setUser(null);
-      setIsAllowed(false);
-    } catch (error) {
-      console.error('Error en logout:', error);
     } finally {
       setIsLoading(false);
     }
@@ -111,65 +111,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, profileData?: any): Promise<boolean> => {
     try {
       setIsLoading(true);
+      
+      if (!profileData?.nombre || !profileData?.apellido) {
+        Alert.alert("Error", "Nombre y apellido son obligatorios");
+        return false;
+      }
+      
       const response = await authService.register({
         email,
         password,
-        full_name: profileData?.full_name || '',
-        phone: profileData?.phone || '',
+        nombre: profileData.nombre,
+        apellido: profileData.apellido,
+        telefono: profileData.telefono || '',
+        rol: 'Agente'
       });
+      
       if (response.token && response.user) {
+        await AsyncStorage.setItem('auth_token', response.token);
+        await AsyncStorage.setItem('user_data', JSON.stringify({
+          id: response.user.id,
+          email: response.user.email,
+          full_name: response.user.full_name,
+          telefono: response.user.phone,
+        }));
+        
         setUser({
           id: response.user.id,
           email: response.user.email,
           token: response.token,
           full_name: response.user.full_name,
           phone: response.user.phone,
-          birth_date: profileData?.birth_date,
-          profile_image_url: response.user.profile_image_url,
         });
         setIsAllowed(true);
-        Alert.alert("Registro exitoso", "Tu cuenta ha sido creada correctamente.");
+        
+        Alert.alert("Éxito", "Cuenta creada correctamente");
         return true;
       }
+      
       return false;
     } catch (error: any) {
-      Alert.alert("Error en registro", error.message);
+      Alert.alert("Error", error.message);
       return false;
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const logout = async () => {
+    await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user_data');
+    await authService.logout();
+    setUser(null);
+    setIsAllowed(false);
   };
 
   const updateProfile = async (profileData: any) => {
-    try {
-      setIsLoading(true);
-      const updatedUser = await authService.updateProfile(profileData);
-      setUser(prev => prev ? {
-        ...prev,
-        full_name: updatedUser.full_name || prev.full_name,
-        phone: updatedUser.phone || prev.phone,
-        birth_date: updatedUser.birth_date || prev.birth_date,
-        profile_image_url: updatedUser.profile_image_url || prev.profile_image_url,
-      } : prev);
-      Alert.alert("Éxito", "Perfil actualizado correctamente");
-    } catch (error: any) {
-      console.error('Error actualizando perfil:', error);
-      Alert.alert("Error", error.message || "No se pudo actualizar el perfil");
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    // Implementar si es necesario
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
+    <AuthContext.Provider value={{
+      user,
       isAllowed,
-      isLoading, 
-      login, 
-      logout, 
+      isLoading,
+      login,
+      logout,
       signUp,
-      updateProfile 
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>
